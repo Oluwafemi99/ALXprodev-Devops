@@ -9,8 +9,8 @@ exit 1
 }
 
 if [ "$HTTP_CODE" -eq 200 ]; then
-mv "$TMP" data.jpeg
-echo "reponse saved to data.jpg"
+mv "$TMP" data.json
+echo "reponse saved to data.json"
 exit 0
 
 else
