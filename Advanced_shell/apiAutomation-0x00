@@ -1,0 +1,24 @@
+#!/bin/bash
+URL="https://pokeapi.co/api/v2/pokemon/pikachu"
+TMP="$(mktemp)"
+HTTP_CODE=$(curl -sS -w "%{http_code}" -o "$TMP" "$URL") || {
+# curl failed (network error)
+echo "$(date -u +'%Y-%m-%dT%H:%M:%SZ') ERROR: curl failed when requsting $URL" >> errors.txt
+rm -f "$TMP"
+exit 1
+}
+
+if [ "$HTTP_CODE" -eq 200 ]; then
+mv "$TMP" data.jpeg
+echo "reponse saved to data.jpg"
+exit 0
+
+else
+# curl return response not 200
+echo "$(date -u +'%Y-%m-%dT%H:%M:%SZ') ERROR: Http $HTTP_CODE requsting $URL" >> errors.txt
+echo "----"
+echo "response body"
+cat "$TMP"
+rm -f "$TMP"
+exit 1
+fi
