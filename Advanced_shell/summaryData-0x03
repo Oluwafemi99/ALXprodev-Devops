@@ -1,0 +1,16 @@
+#!/bin/bash
+output_file="pokemon_report.csv"
+# write a header
+echo "Name,Height (m),Weight (kg)" > "$output_file"
+#Loop through the json files in the directory
+for file in *.json; do
+	name=$(jq -r '.name' "$file")
+	height=$(jq -r '.height' "$file")
+	weight=$(jq -r '.weight' "$file")
+	echo "${name},${height},${weight}" >> "$output_file"
+done
+echo "=== pokeman report ==="
+cat "$output_file"
+
+#calculate the Average height and weight
+awk -F',' 'NR>1 {height+=$2; weight+=$3} END {print "Average Height: " (height/(NR-1))/10 " m"; print "Average Weight: " (weight/(NR-1))/10 " kg"}' "$output_file"
