@@ -1,0 +1,19 @@
+#!/bin/bash
+pokemon_list=("Bulbasaur" "Ivysaur" "Venusaur" "Charmander" "Charmeleon")
+Base_url="https://pokeapi.co/api/v2/pokemon"
+tmp="$(mktemp)"
+
+# Loop through each pokemon
+for name in "${pokemon_list[@]}"
+do
+	echo "fetching data for ${name}"
+	curl -s "${Base_url}/${name}" -o "$tmp"
+	if [ $? -eq 0 ]; then
+		mv "$tmp" ${name}.json
+		echo "saved ${name}.json succesfully"
+	else
+		rm -f "$tmp"
+		echo "failed to save ${name}.json"
+	fi
+	sleep 2
+done
