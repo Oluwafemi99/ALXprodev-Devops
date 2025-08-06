@@ -2,18 +2,32 @@
 pokemon_list=("bulbasaur", "ivysaur", "venusaur", "charmander", "charmeleon")
 Base_url="https://pokeapi.co/api/v2/pokemon"
 tmp="$(mktemp)"
+success=0
+attempts=0
+max_attempts=3
 
 # Loop through each pokemon
 for name in "${pokemon_list[@]}"
 do
-	echo "fetching data for ${name}"
-	curl -s "${Base_url}/${name}" -o "$tmp"
-	if [ $? -eq 0 ]; then
-		mv "$tmp" ${name}.json
-		echo "saved ${name}.json succesfully"
-	else
-		rm -f "$tmp"
-		echo "failed to save ${name}.json"
-	fi
-	sleep 2
+	while [ $attempts -lt $max_attempts ]; do
+		echo "fetching data for ${name}"
+		curl -s "${Base_url}/${name}" -o "$tmp"
+		if [ $? -eq 0 ]; then
+			mv "$tmp" ${name}.json
+			echo "saved ${name}.json succesfully"
+			success=1
+			break
+		else
+			echo "attempts: $((attempts+=1)) failed to save ${name}.json"
+			rm -f "$tmp"
+			sleep 2
+		fi
+		attempts=$((attempts+=1))
+	done
+	if [ success -ne 1 ]; then
+	echo "Failed to fetch data for ${name} after ${max_attempts} attempts"
+    	fi
+
+    	sleep 2  # Rate limiting between different Pokémon
 done
+
