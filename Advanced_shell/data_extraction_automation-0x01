@@ -1,24 +1,14 @@
 #!/bin/bash
-jq -r '.name + "|" + ([.types[].type.name] | join(",")) + "|" + (.weight|tostring) + "|" + (.height|tostring)' data.json \
-| awk -F'|' '{
-name = $1;
-types = $2;
-weight = $3;
-height = $4;
-# Capitalise the first leter of the name
-name = toupper(substr(name,1,1)) tolower(substr(name,2));
-# spilt types and capitalise string then use "and" to join if many
-n= split(types, a ,",");
-for (i=1;i<=n;i++) {
-a[i] = toupper(substr(a[i],1,1)) tolower(substr(a[i],2));
-}
-typeStr = a[1];
-for (i=2;i<=n;i++) typeStr = typeStr "and" a[i];
+raw=$(jq -r '.name + "|" + ([.types[].type.name] | join(",")) + "|" + (.weight|tostring) + "|" + (.height|tostring)' data.json)
+#use awk and sed to clean and transform
+name=$(echo "$raw" | awk -F'|' '{print $1}' | sed 's/.*/\u&/')
+type=$(echo "$raw" | awk -F'|' '{print $2}' | sed 's/\b./\u&/g')
+weight=$(echo "$raw" | awk -F'|' '{print $3}')
+height=$(echo "$raw" | awk -F'|' '{print $4}')
 
-# convert weight and height and convert to 1 decimal places
-w = weight / 10;
-if (w == int(w)) w_str = int(w) "kg"; else w_str = sprintf("%.1fkg", w);
-h = height / 10;
-h_str = sprintf("%.1f", h) "m";
-printf "%s is of type %s, weighs %s  and is %s tall.\n", name, typeStr, w_str, h_str;
-}'
+# covert weight and height to correct unit
+formatted_weight=$(awk -v w="$weight" 'BEGIN {w=w/10; printf"%g", w}')
+formatted_height=$(awk -v h="$height" 'BEGIN {h=h/10; printf"%g", h}')
+
+# print out the result
+echo "$name is of type $type, weighs ${formatted_weight}kg, and is ${formatted_height}m tall."
