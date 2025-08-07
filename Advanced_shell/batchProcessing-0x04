@@ -21,7 +21,7 @@ fetch_pokemon_data() {
 for pokemon in "${pokemon_list[@]}"; do
 	fetch_pokemon_data "$pokemon"
 done
+jobs
 # wait for all processes to finish
 wait
 echo "Succesfully fetch all data"
-
