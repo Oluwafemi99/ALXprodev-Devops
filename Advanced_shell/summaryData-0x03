@@ -10,7 +10,7 @@ for file in *.json; do
 	echo "${name},${height},${weight}" >> "$output_file"
 done
 
-# 🧼 Use sed to clean up Pokémon names (just an example: capitalize first letter)
+# Use sed to clean up Pokémon names (just an example: capitalize first letter)
 sed -i -E 's/^([a-z])/\U\1/' "$output_file"
 
 echo "=== pokeman report ==="

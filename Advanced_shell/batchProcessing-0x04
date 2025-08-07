@@ -1,0 +1,27 @@
+#!/bin/bash
+# Script that fetch data of pokemon names in parallel
+
+pokemon_list=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
+
+# create a Directory
+output_dir="pokemon_data"
+mkdir -p "$output_dir"
+
+# pokemon url
+url="https://pokeapi.co/api/v2/pokemon"
+
+#create a function to fetch data for a single profile
+fetch_pokemon_data() {
+       local name=$1
+	curl -s "${url}/${name}" -o "${output_dir}/${name}.json" &
+	echo "fetching data for $name..."
+}
+
+# fetching list in parrallel
+for pokemon in "${pokemon_list[@]}"; do
+	fetch_pokemon_data "$pokemon"
+done
+# wait for all processes to finish
+wait
+echo "Succesfully fetch all data"
+
