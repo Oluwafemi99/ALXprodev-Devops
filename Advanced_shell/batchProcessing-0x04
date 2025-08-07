@@ -10,18 +10,49 @@ mkdir -p "$output_dir"
 # pokemon url
 url="https://pokeapi.co/api/v2/pokemon"
 
+jobs_log="jobs_log.json"
+pids_file="pid_file.text"
+echo "{jobs: []}" >> "$job_logs" >> "$pid_file"
+
+# Kill mode: terminate all recorded PIDs
+if [[ "$1" == "--kill" ]]; then
+    if [[ -s "$pids_file" ]]; then
+        echo "Killing all running jobs..."
+        while read -r pid; do
+            kill "$pid" 2>/dev/null && echo "Killed PID $pid"
+        done < "$pids_file"
+        > "$pids_file"
+        echo "All jobs terminated."
+    else
+        echo "  No running jobs to kill."
+    fi
+    exit 0
+fi
+
 #create a function to fetch data for a single profile
 fetch_pokemon_data() {
        local name=$1
-	curl -s "${url}/${name}" -o "${output_dir}/${name}.json" &
 	echo "fetching data for $name..."
+	(
+        if curl -s "${url}/${name}" -o "${output_dir}/${name}.json"; then
+            status="success"
+        else
+            status="failed"
+        fi
+
+        jq --arg name "$name" --arg status "$status" \
+           '.jobs += [{"name": $name, "status": $status}]' \
+           "$jobs_log" > tmp.$$.json && mv tmp.$$.json "$jobs_log"
+    ) &
+	echo $! >> "$pids_file"  # Save PID
 }
 
 # fetching list in parrallel
 for pokemon in "${pokemon_list[@]}"; do
 	fetch_pokemon_data "$pokemon"
 done
-jobs
 # wait for all processes to finish
 wait
 echo "Succesfully fetch all data"
+jq '.jobs' "$jobs_log"
+> "$pids_file" # clear the file after completion
